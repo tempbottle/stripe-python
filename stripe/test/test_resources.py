@@ -168,7 +168,7 @@ class ListObjectTests(StripeApiTestCase):
         res = self.lo.all(myparam='you')
 
         self.requestor_mock.request.assert_called_with(
-            'get', '/my/path', {'myparam': 'you'})
+            'get', '/my/path', {'myparam': 'you'}, None)
 
         self.assertResponse(res)
 
@@ -176,15 +176,21 @@ class ListObjectTests(StripeApiTestCase):
         res = self.lo.create(myparam='eter')
 
         self.requestor_mock.request.assert_called_with(
-            'post', '/my/path', {'myparam': 'eter'})
+            'post', '/my/path', {'myparam': 'eter'}, None)
 
+        self.assertResponse(res)
+
+    def test_create_with_headers(self):
+        res = self.lo.create(myparam='eter', headers={'key': 'value'})
+        self.requestor_mock.request.assert_called_with(
+            'post', '/my/path', {'myparam': 'eter'}, {'key': 'value'})
         self.assertResponse(res)
 
     def test_retrieve(self):
         res = self.lo.retrieve('myid', myparam='cow')
 
         self.requestor_mock.request.assert_called_with(
-            'get', '/my/path/myid', {'myparam': 'cow'})
+            'get', '/my/path/myid', {'myparam': 'cow'}, None)
 
         self.assertResponse(res)
 
@@ -201,7 +207,7 @@ class APIResourceTests(StripeApiTestCase):
 
         url = '/v1/myresources/foo%2A'
         self.requestor_mock.request.assert_called_with(
-            'get', url, {'myparam': 5}
+            'get', url, {'myparam': 5}, None
         )
 
         self.assertEqual('scrobble', res.bobble)
@@ -216,7 +222,7 @@ class APIResourceTests(StripeApiTestCase):
 
         url = '/v1/myresources/foo2'
         self.requestor_mock.request.assert_called_with(
-            'get', url, {'myparam': 5}
+            'get', url, {'myparam': 5}, None
         )
 
         self.assertEqual(5, res.frobble)
@@ -265,7 +271,7 @@ class SingletonAPIResourceTests(StripeApiTestCase):
         res = MySingleton.retrieve()
 
         self.requestor_mock.request.assert_called_with(
-            'get', '/v1/mysingleton', {})
+            'get', '/v1/mysingleton', {}, None)
 
         self.assertEqual('ton', res.single)
 
@@ -287,7 +293,7 @@ class ListableAPIResourceTests(StripeApiTestCase):
         res = MyListable.all()
 
         self.requestor_mock.request.assert_called_with(
-            'get', '/v1/mylistables', {})
+            'get', '/v1/mylistables', {}, None)
 
         self.assertEqual(2, len(res))
         self.assertTrue(all(isinstance(obj, stripe.Charge) for obj in res))
@@ -306,7 +312,7 @@ class CreateableAPIResourceTests(StripeApiTestCase):
         res = MyCreatable.create()
 
         self.requestor_mock.request.assert_called_with(
-            'post', '/v1/mycreatables', {})
+            'post', '/v1/mycreatables', {}, None)
 
         self.assertTrue(isinstance(res, stripe.Charge))
         self.assertEqual('bar', res.foo)
@@ -360,7 +366,8 @@ class UpdateableAPIResourceTests(StripeApiTestCase):
                     'info': 'a2',
                     'height': '',
                 }
-            }
+            },
+            None
         )
 
     def test_save_replace_metadata(self):
@@ -386,7 +393,8 @@ class UpdateableAPIResourceTests(StripeApiTestCase):
                     'height': '',
                     'score': 4,
                 }
-            }
+            },
+            None
         )
 
 
@@ -425,7 +433,8 @@ class ChargeTest(StripeResourceTest):
             '/v1/charges',
             {
                 'created': {'lt': NOW},
-            }
+            },
+            None
         )
 
     def test_charge_list_create(self):
@@ -434,7 +443,8 @@ class ChargeTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'post',
             '/v1/charges',
-            DUMMY_CHARGE
+            DUMMY_CHARGE,
+            None
         )
 
     def test_charge_list_retrieve(self):
@@ -443,7 +453,8 @@ class ChargeTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/charges/ch_test_id',
-            {}
+            {},
+            None
         )
 
     def test_charge_update_dispute(self):
@@ -453,7 +464,8 @@ class ChargeTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'post',
             '/v1/charges/ch_update_id/dispute',
-            {}
+            {},
+            None
         )
 
     def test_charge_close_dispute(self):
@@ -463,7 +475,7 @@ class ChargeTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'post',
             '/v1/charges/ch_update_id/dispute/close',
-            {}
+            {},
         )
 
     def test_mark_as_fraudulent(self):
@@ -475,7 +487,8 @@ class ChargeTest(StripeResourceTest):
             '/v1/charges/ch_update_id',
             {
                 'fraud_details': {'user_report': 'fraudulent'}
-            }
+            },
+            None
         )
 
     def test_mark_as_safe(self):
@@ -487,7 +500,8 @@ class ChargeTest(StripeResourceTest):
             '/v1/charges/ch_update_id',
             {
                 'fraud_details': {'user_report': 'safe'}
-            }
+            },
+            None
         )
 
 
@@ -499,7 +513,8 @@ class AccountTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/account',
-            {}
+            {},
+            None
         )
 
 
@@ -511,7 +526,8 @@ class BalanceTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/balance',
-            {}
+            {},
+            None
         )
 
 
@@ -522,7 +538,8 @@ class BalanceTransactionTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/balance/history',
-            {}
+            {},
+            None
         )
 
 
@@ -533,7 +550,8 @@ class ApplicationFeeTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/application_fees',
-            {}
+            {},
+            None
         )
 
 
@@ -544,7 +562,8 @@ class CustomerTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/customers',
-            {}
+            {},
+            None
         )
 
     def test_create_customer(self):
@@ -557,7 +576,8 @@ class CustomerTest(StripeResourceTest):
                 'coupon': 'cu_discount',
                 'description': 'foo bar',
                 'card': DUMMY_CARD
-            }
+            },
+            None
         )
 
     def test_unset_description(self):
@@ -570,7 +590,8 @@ class CustomerTest(StripeResourceTest):
             '/v1/customers/cus_unset_desc',
             {
                 'description': 'Hey',
-            }
+            },
+            None
         )
 
     def test_cannot_set_empty_string(self):
@@ -592,7 +613,8 @@ class CustomerTest(StripeResourceTest):
             '/v1/customers/cus_add_card/cards',
             {
                 'card': DUMMY_CARD,
-            }
+            },
+            None
         )
 
     def test_customer_update_card(self):
@@ -608,7 +630,8 @@ class CustomerTest(StripeResourceTest):
             '/v1/customers/cus_update_card/cards/ca_update_card',
             {
                 'name': 'The Best',
-            }
+            },
+            None
         )
 
     def test_customer_delete_card(self):
@@ -621,7 +644,8 @@ class CustomerTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'delete',
             '/v1/customers/cus_delete_card/cards/ca_delete_card',
-            {}
+            {},
+            None
         )
 
 
@@ -633,6 +657,7 @@ class TransferTest(StripeResourceTest):
             'get',
             '/v1/transfers',
             {},
+            None
         )
 
     def test_cancel_transfer(self):
@@ -643,6 +668,7 @@ class TransferTest(StripeResourceTest):
             'post',
             '/v1/transfers/tr_cancel/cancel',
             {},
+            None
         )
 
 
@@ -654,6 +680,7 @@ class RecipientTest(StripeResourceTest):
             'get',
             '/v1/recipients',
             {},
+            None
         )
 
     def test_recipient_transfers(self):
@@ -664,6 +691,7 @@ class RecipientTest(StripeResourceTest):
             'get',
             '/v1/transfers',
             {'recipient': 'rp_transfer'},
+            None
         )
 
     def test_recipient_add_card(self):
@@ -681,7 +709,8 @@ class RecipientTest(StripeResourceTest):
             '/v1/recipients/rp_add_card/cards',
             {
                 'card': DUMMY_CARD,
-            }
+            },
+            None
         )
 
     def test_recipient_update_card(self):
@@ -697,7 +726,8 @@ class RecipientTest(StripeResourceTest):
             '/v1/recipients/rp_update_card/cards/ca_update_card',
             {
                 'name': 'The Best',
-            }
+            },
+            None
         )
 
     def test_recipient_delete_card(self):
@@ -710,7 +740,8 @@ class RecipientTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'delete',
             '/v1/recipients/rp_delete_card/cards/ca_delete_card',
-            {}
+            {},
+            None
         )
 
 
@@ -725,7 +756,8 @@ class CustomerPlanTest(StripeResourceTest):
             {
                 'card': DUMMY_CARD,
                 'plan': DUMMY_PLAN['id'],
-            }
+            },
+            None
         )
 
     def test_legacy_update_subscription(self):
@@ -737,7 +769,8 @@ class CustomerPlanTest(StripeResourceTest):
             '/v1/customers/cus_legacy_sub_update/subscription',
             {
                 'plan': DUMMY_PLAN['id'],
-            }
+            },
+            None
         )
 
     def test_legacy_delete_subscription(self):
@@ -748,6 +781,7 @@ class CustomerPlanTest(StripeResourceTest):
             'delete',
             '/v1/customers/cus_legacy_sub_delete/subscription',
             {},
+            None
         )
 
     def test_create_customer_subscription(self):
@@ -756,7 +790,7 @@ class CustomerPlanTest(StripeResourceTest):
             'subscriptions': {
                 'object': 'list',
                 'url': '/v1/customers/cus_sub_create/subscriptions',
-            }
+            },
         }, 'api_key')
 
         customer.subscriptions.create(plan=DUMMY_PLAN['id'], coupon='foo')
@@ -767,7 +801,8 @@ class CustomerPlanTest(StripeResourceTest):
             {
                 'plan': DUMMY_PLAN['id'],
                 'coupon': 'foo',
-            }
+            },
+            None
         )
 
     def test_retrieve_customer_subscription(self):
@@ -785,6 +820,7 @@ class CustomerPlanTest(StripeResourceTest):
             'get',
             '/v1/customers/cus_foo/subscriptions/sub_cus',
             {},
+            None
         )
 
     def test_update_customer_subscription(self):
@@ -807,6 +843,7 @@ class CustomerPlanTest(StripeResourceTest):
                 'plan': DUMMY_PLAN['id'],
                 'trial_end': trial_end_int,
             },
+            None
         )
 
     def test_delete_customer_subscription(self):
@@ -821,6 +858,7 @@ class CustomerPlanTest(StripeResourceTest):
             'delete',
             '/v1/customers/cus_foo/subscriptions/sub_delete',
             {},
+            None
         )
 
 
@@ -837,6 +875,7 @@ class InvoiceTest(StripeResourceTest):
             'post',
             '/v1/invoiceitems',
             expected,
+            None
         )
 
     def test_retrieve_invoice_items(self):
@@ -847,6 +886,7 @@ class InvoiceTest(StripeResourceTest):
             'get',
             '/v1/invoiceitems',
             {'customer': 'cus_get_invoice_items'},
+            None,
         )
 
     def test_invoice_create(self):
@@ -859,6 +899,7 @@ class InvoiceTest(StripeResourceTest):
             {
                 'customer': 'cus_invoice',
             },
+            None,
         )
 
     def test_retrieve_customer_invoices(self):
@@ -871,6 +912,7 @@ class InvoiceTest(StripeResourceTest):
             {
                 'customer': 'cus_invoice_items',
             },
+            None,
         )
 
     def test_pay_invoice(self):
@@ -881,6 +923,7 @@ class InvoiceTest(StripeResourceTest):
             'post',
             '/v1/invoices/ii_pay/pay',
             {},
+            None,
         )
 
     def test_upcoming_invoice(self):
@@ -890,6 +933,7 @@ class InvoiceTest(StripeResourceTest):
             'get',
             '/v1/invoices/upcoming',
             {},
+            None,
         )
 
 
@@ -901,6 +945,7 @@ class CouponTest(StripeResourceTest):
             'post',
             '/v1/coupons',
             DUMMY_COUPON,
+            None,
         )
 
     def test_update_coupon(self):
@@ -918,7 +963,8 @@ class CouponTest(StripeResourceTest):
                 'metadata': {
                     'key': 'value',
                 }
-            }
+            },
+            None,
         )
 
     def test_delete_coupon(self):
@@ -929,6 +975,7 @@ class CouponTest(StripeResourceTest):
             'delete',
             '/v1/coupons/cu_delete',
             {},
+            None
         )
 
     def test_detach_coupon(self):
@@ -938,6 +985,8 @@ class CouponTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'delete',
             '/v1/customers/cus_delete_discount/discount',
+            {},
+            None
         )
 
 
@@ -950,6 +999,7 @@ class PlanTest(StripeResourceTest):
             'post',
             '/v1/plans',
             DUMMY_PLAN,
+            None
         )
 
     def test_delete_plan(self):
@@ -959,7 +1009,8 @@ class PlanTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'delete',
             '/v1/plans/pl_delete',
-            {}
+            {},
+            None
         )
 
     def test_update_plan(self):
@@ -972,7 +1023,8 @@ class PlanTest(StripeResourceTest):
             '/v1/plans/pl_update',
             {
                 'name': 'Plan Name',
-            }
+            },
+            None
         )
 
 
@@ -992,7 +1044,8 @@ class RefundTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'post',
             '/v1/charges/ch_foo/refunds',
-            {}
+            {},
+            None
         )
 
     def test_fetch_refund(self):
@@ -1009,7 +1062,8 @@ class RefundTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/charges/ch_get_refund/refunds/ref_get',
-            {}
+            {},
+            None
         )
 
     def test_list_refunds(self):
@@ -1026,7 +1080,8 @@ class RefundTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/charges/ch_get_refund/refunds',
-            {}
+            {},
+            None
         )
 
     def test_update_refund(self):
@@ -1045,7 +1100,8 @@ class RefundTest(StripeResourceTest):
                 'metadata': {
                     'key': 'value',
                 }
-            }
+            },
+            None
         )
 
 
@@ -1061,7 +1117,8 @@ class MetadataTest(StripeResourceTest):
             '/v1/charges/ch_foo',
             {
                 'description': 'test',
-            }
+            },
+            None
         )
 
     def test_unset_metadata(self):
@@ -1074,7 +1131,8 @@ class MetadataTest(StripeResourceTest):
             '/v1/charges/ch_foo',
             {
                 'metadata': {},
-            }
+            },
+            None
         )
 
     def test_whole_update(self):
@@ -1087,7 +1145,8 @@ class MetadataTest(StripeResourceTest):
             '/v1/charges/ch_foo',
             {
                 'metadata': {'whole': 'update'},
-            }
+            },
+            None
         )
 
     def test_individual_delete(self):
@@ -1100,7 +1159,8 @@ class MetadataTest(StripeResourceTest):
             '/v1/charges/ch_foo',
             {
                 'metadata': {'whole': None},
-            }
+            },
+            None
         )
 
 
@@ -1120,7 +1180,8 @@ class ApplicationFeeRefundTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/application_fees/fee_get_refund/refunds/ref_get',
-            {}
+            {},
+            None
         )
 
     def test_list_refunds(self):
@@ -1137,7 +1198,8 @@ class ApplicationFeeRefundTest(StripeResourceTest):
         self.requestor_mock.request.assert_called_with(
             'get',
             '/v1/application_fees/fee_get_refund/refunds',
-            {}
+            {},
+            None
         )
 
     def test_update_refund(self):
@@ -1156,5 +1218,6 @@ class ApplicationFeeRefundTest(StripeResourceTest):
                 'metadata': {
                     'key': 'value',
                 }
-            }
+            },
+            None
         )

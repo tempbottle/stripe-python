@@ -123,12 +123,12 @@ class StripeObject(dict):
 
         self._previous_metadata = values.get('metadata')
 
-    def request(self, method, url, params=None):
+    def request(self, method, url, params=None, headers=None):
         if params is None:
             params = self._retrieve_params
 
         requestor = api_requestor.APIRequestor(self.api_key)
-        response, api_key = requestor.request(method, url, params)
+        response, api_key = requestor.request(method, url, params, headers)
 
         return convert_to_stripe_object(response, api_key)
 
@@ -217,19 +217,19 @@ class APIResource(StripeObject):
 
 class ListObject(StripeObject):
 
-    def all(self, **params):
-        return self.request('get', self['url'], params)
+    def all(self, headers=None, **params):
+        return self.request('get', self['url'], params, headers)
 
-    def create(self, **params):
-        return self.request('post', self['url'], params)
+    def create(self, headers=None, **params):
+        return self.request('post', self['url'], params, headers)
 
-    def retrieve(self, id, **params):
+    def retrieve(self, id, headers=None, **params):
         base = self.get('url')
         id = util.utf8(id)
         extn = urllib.quote_plus(id)
         url = "%s/%s" % (base, extn)
 
-        return self.request('get', url, params)
+        return self.request('get', url, params, headers)
 
 
 class SingletonAPIResource(APIResource):
@@ -254,20 +254,20 @@ class SingletonAPIResource(APIResource):
 class ListableAPIResource(APIResource):
 
     @classmethod
-    def all(cls, api_key=None, **params):
+    def all(cls, api_key=None, headers=None, **params):
         requestor = api_requestor.APIRequestor(api_key)
         url = cls.class_url()
-        response, api_key = requestor.request('get', url, params)
+        response, api_key = requestor.request('get', url, params, headers)
         return convert_to_stripe_object(response, api_key)
 
 
 class CreateableAPIResource(APIResource):
 
     @classmethod
-    def create(cls, api_key=None, **params):
+    def create(cls, api_key=None, headers=None, **params):
         requestor = api_requestor.APIRequestor(api_key)
         url = cls.class_url()
-        response, api_key = requestor.request('post', url, params)
+        response, api_key = requestor.request('post', url, params, headers)
         return convert_to_stripe_object(response, api_key)
 
 
@@ -314,8 +314,9 @@ class UpdateableAPIResource(APIResource):
 
 class DeletableAPIResource(APIResource):
 
-    def delete(self, **params):
-        self.refresh_from(self.request('delete', self.instance_url(), params))
+    def delete(self, headers=None, **params):
+        self.refresh_from(self.request('delete', self.instance_url(),
+                          params, headers))
         return self
 
 # API objects
@@ -372,20 +373,20 @@ class Card(UpdateableAPIResource, DeletableAPIResource):
 class Charge(CreateableAPIResource, ListableAPIResource,
              UpdateableAPIResource):
 
-    def refund(self, **params):
+    def refund(self, headers=None, **params):
         url = self.instance_url() + '/refund'
-        self.refresh_from(self.request('post', url, params))
+        self.refresh_from(self.request('post', url, headers, params))
         return self
 
-    def capture(self, **params):
+    def capture(self, headers=None, **params):
         url = self.instance_url() + '/capture'
-        self.refresh_from(self.request('post', url, params))
+        self.refresh_from(self.request('post', url, headers, params))
         return self
 
-    def update_dispute(self, **params):
+    def update_dispute(self, headers=None, **params):
         requestor = api_requestor.APIRequestor(self.api_key)
         url = self.instance_url() + '/dispute'
-        response, api_key = requestor.request('post', url, params)
+        response, api_key = requestor.request('post', url, params, headers)
         self.refresh_from({'dispute': response}, api_key, True)
         return self.dispute
 
@@ -436,24 +437,24 @@ class Customer(CreateableAPIResource, UpdateableAPIResource,
         charges = Charge.all(self.api_key, **params)
         return charges
 
-    def update_subscription(self, **params):
+    def update_subscription(self, headers=None, **params):
         requestor = api_requestor.APIRequestor(self.api_key)
         url = self.instance_url() + '/subscription'
-        response, api_key = requestor.request('post', url, params)
+        response, api_key = requestor.request('post', url, params, headers)
         self.refresh_from({'subscription': response}, api_key, True)
         return self.subscription
 
-    def cancel_subscription(self, **params):
+    def cancel_subscription(self, headers=None, **params):
         requestor = api_requestor.APIRequestor(self.api_key)
         url = self.instance_url() + '/subscription'
-        response, api_key = requestor.request('delete', url, params)
+        response, api_key = requestor.request('delete', url, params, headers)
         self.refresh_from({'subscription': response}, api_key, True)
         return self.subscription
 
-    def delete_discount(self, **params):
+    def delete_discount(self, headers=None, **params):
         requestor = api_requestor.APIRequestor(self.api_key)
         url = self.instance_url() + '/discount'
-        _, api_key = requestor.request('delete', url)
+        _, api_key = requestor.request('delete', url, params, headers)
         self.refresh_from({'discount': None}, api_key, True)
 
 
@@ -464,10 +465,10 @@ class Invoice(CreateableAPIResource, ListableAPIResource,
         return self.request('post', self.instance_url() + '/pay', {})
 
     @classmethod
-    def upcoming(cls, api_key=None, **params):
+    def upcoming(cls, api_key=None, headers=None, **params):
         requestor = api_requestor.APIRequestor(api_key)
         url = cls.class_url() + '/upcoming'
-        response, api_key = requestor.request('get', url, params)
+        response, api_key = requestor.request('get', url, params, headers)
         return convert_to_stripe_object(response, api_key)
 
 
@@ -499,10 +500,10 @@ class Subscription(UpdateableAPIResource, DeletableAPIResource):
             "Can't retrieve a subscription without a customer ID. "
             "Use customer.subscriptions.retrieve('subscription_id') instead.")
 
-    def delete_discount(self, **params):
+    def delete_discount(self, headers=None, **params):
         requestor = api_requestor.APIRequestor(self.api_key)
         url = self.instance_url() + '/discount'
-        _, api_key = requestor.request('delete', url)
+        _, api_key = requestor.request('delete', url, params, headers)
         self.refresh_from({'discount': None}, api_key, True)
 
 
@@ -558,9 +559,9 @@ class ApplicationFee(ListableAPIResource):
     def class_name(cls):
         return 'application_fee'
 
-    def refund(self, **params):
+    def refund(self, headers=None, **params):
         url = self.instance_url() + '/refund'
-        self.refresh_from(self.request('post', url, params))
+        self.refresh_from(self.request('post', url, params, headers))
         return self
 
 
