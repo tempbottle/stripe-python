@@ -12,6 +12,7 @@ def convert_to_stripe_object(resp, api_key):
              'transfer': Transfer, 'list': ListObject, 'recipient': Recipient,
              'card': Card, 'application_fee': ApplicationFee,
              'subscription': Subscription, 'refund': Refund,
+             'file': FileUpload,
              'fee_refund': ApplicationFeeRefund}
 
     if isinstance(resp, list):
@@ -552,6 +553,11 @@ class Recipient(CreateableAPIResource, UpdateableAPIResource,
         transfers = Transfer.all(self.api_key, **params)
         return transfers
 
+
+class FileUpload(CreateableAPIResource):
+    @classmethod
+    def class_name(cls):
+        return 'file'
 
 class ApplicationFee(ListableAPIResource):
     @classmethod

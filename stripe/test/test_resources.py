@@ -975,6 +975,24 @@ class PlanTest(StripeResourceTest):
             }
         )
 
+class FileUploadTest(StripeResourceTest):
+    def test_create_file_upload(self):
+        stripe.FileUpload.create({
+            'purpose': 'dispute_evidence',
+            })
+        self.requestor_mock.request.assert_called_with(
+            'post',
+            '/v1/files',
+        )
+
+    def test_fetch_file_upload(self):
+        stripe.FileUpload.retrieve("fil_foo")
+        self.requestor_mock.request.assert_called_with(
+            'get',
+            '/v1/files/fil_foo',
+            {}
+        )
+
 
 class RefundTest(StripeResourceTest):
 
